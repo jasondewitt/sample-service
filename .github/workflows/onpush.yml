@@ -1,0 +1,128 @@
+name: sample service build and deploy
+# This workflow is triggered on pushes to the repository.
+on:
+  push:
+    branches:
+      - master
+
+
+env:
+  IMAGE_NAME: jasondewitt/sample-service
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+jobs:
+  build-app:
+    name: build-app
+    # This job runs on Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: set up variables
+        run: |
+          echo "BRANCH=${GITHUB_REF#refs/heads/}"
+          echo ::set-env name=BRANCH::$(echo ${GITHUB_REF#refs/heads/})
+          echo ::set-env name=COMMIT_SHA::$(echo $GITHUB_SHA | cut -c 1-7)
+          echo ::set-env name=DEPLOY_BUCKET::storycorps-elasticbeanstalk-deploy
+          echo ::set-env name=EB_APP_NAME::storycorps_archive
+          echo ::set-env name=ECR_REGION::us-west-2
+      - name: debug vars
+        run: |
+          echo "branch is $BRANCH"
+      # - name: set version tag var
+      #   run: |
+      #     echo ::set-env name=VERSION_TAG::$(echo "${BRANCH}-${COMMIT_SHA}")
+      # - name: determine which envrionment to deploy
+      #   run: |
+      #     case $BRANCH in
+      #       dockerfile)
+      #         echo ::set-env name=EB_ENV_NAME::archive-staging
+      #         ;;
+      #       stage)
+      #         echo ::set-env name=EB_ENV_NAME::archive-staging
+      #         ;;
+      #       trunk)
+      #         echo ::set-env name=EB_ENV_NAME::archive-production
+      #         ;;
+      #       *)
+      #         echo "could not match branch with envrionment"
+      #         echo $BRANCH
+      #         exit 1
+      #         ;;
+      #     esac
+
+
+      # - uses: shivammathur/setup-php@v2
+      #   with:
+      #     php-version: '7.3'
+      #     tools: pecl, composer:v1
+      #     extensions: curl, soap
+
+      # - name: checkout storycorps archive repo
+      #   uses: actions/checkout@master
+      # - name: checkout utility scripts repo
+      #   uses: actions/checkout@v2
+      #   with:
+      #     repository:  storycorps/archive-utility-scripts
+      #     token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }} # `GitHub_PAT` is a secret that contains your PAT
+      #     path: archive-utility-scripts
+      # - name: configure composer to use GH access token
+      #   run: composer config -g github-oauth.github.com ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+      # - name: build the app
+      #   run: make payload
+      # - name: build container
+      #   run: make container
+      #   env:
+      #     NR_LICENSE_KEY:  ${{ secrets.NR_LICENSE_KEY }}
+
+
+      # - name: Push run_id tag to ECR
+      #   id: ecr-tag
+      #   uses: jwalton/gh-ecr-push@v1
+      #   with:
+      #     access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     region: ${ECR_REGION}
+      #     local-image: storycorps
+      #     image: $IMAGE_NAME:${VERSION_TAG}
+      # - name: Push latest tag to ECR for stage branch
+      #   id: ecr-latest-stage
+      #   uses: jwalton/gh-ecr-push@v1
+      #   if: env.BRANCH == 'stage'
+      #   with:
+      #     access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     region: ${ECR_REGION}
+      #     local-image: storycorps
+      #     image: $IMAGE_NAME:stage-latest
+      # - name: Push latest tag to ECR for trunk branch
+      #   id: ecr-latest-trunk
+      #   uses: jwalton/gh-ecr-push@v1
+      #   if: env.BRANCH == 'trunk'
+      #   with:
+      #     access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     region: ${ECR_REGION}
+      #     local-image: storycorps
+      #     image: $IMAGE_NAME:latest
+      # - name: AWS cli install action
+      #   uses: chrislennon/action-aws-cli@1.1
+      # - name: create Dockerrun.aws.json from template
+      #   run: sed "s/<tag>/$VERSION_TAG/" Dockerrun.aws.json.template > Dockerrun.aws.json
+      # - name: create ElasticBeanstalk deploy zip
+      #   run: zip -r deploy-${VERSION_TAG}.zip .ebextensions Dockerrun.aws.json
+      # - name: copy deploy zip to S3
+      #   run: aws s3 cp deploy-${VERSION_TAG}.zip s3://${DEPLOY_BUCKET}/
+      # - name: create application version
+      #   run: |
+      #     aws elasticbeanstalk create-application-version --application-name ${EB_APP_NAME} \
+      #     --version-label ${VERSION_TAG} \
+      #     --source-bundle S3Bucket="storycorps-elasticbeanstalk-deploy",S3Key="deploy-${VERSION_TAG}.zip" \
+      #     --region ${ECR_REGION}
+      # - name: deploy version to staging
+      #   run: |
+      #     aws elasticbeanstalk update-environment --application-name ${EB_APP_NAME} \
+      #     --environment-name ${EB_ENV_NAME} \
+      #     --version-label ${VERSION_TAG} --region ${ECR_REGION}
+
+
+
