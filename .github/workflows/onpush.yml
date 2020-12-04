@@ -71,7 +71,6 @@ jobs:
           goss -version
       - name: run goss tests
         run: |
-          docker load -i images/build-output.tar
           /root/bin/dgoss run build-output
 
       - name: install fargate-cli
