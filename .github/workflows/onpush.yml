@@ -61,34 +61,19 @@ jobs:
           load: true
           tags: build-output
 
-      - name: save built container as artifact
+      - name: install Goss requirements
         run: |
-          mkdir -p image || exit 1
-          docker save build-output > image/output_image.tar
-
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: build-output
-          path: image/
-
-  goss-test:
-    name: goss-test
-    runs-on: ubuntu-latest
-    steps:
-      - name: install goss
-        uses: e1himself/goss-installation-action@master
-        with:
-          version: 'v0.3.14'
-      - name: load docker image and run test
+          mkdir ~/bin
+          export GOSS_DST=~/bin
+          export GOSS_FILES_STRATEGY=cp
+          export PATH=$PATH:~/bin
+          curl -fsSL https://goss.rocks/install | sh
+          goss -version
+      - name: run goss tests
         run: |
           docker load -i images/build-output.tar
           /root/bin/dgoss run build-output
-      
-  deploy-app:
-    name: deploy-app
-    runs-on: ubuntu-latest
-    steps:
+
       - name: install fargate-cli
         uses: acro5piano/github-actions-fargatecli@master
         with:
