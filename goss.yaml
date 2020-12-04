@@ -1,0 +1,9 @@
+port:
+  tcp:5000:
+    listening: true
+    ip:
+    - 0.0.0.0
+
+process:
+  python:
+    running: true
