@@ -20,13 +20,12 @@ jobs:
       - name: set up variables
         run: |
           echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-
-      - name: debug vars
+          echo "DEPLOY_BUCKET=storycorps-elasticbeanstalk-deploy" >> $GITHUB_ENV
+          echo "EB_APP_NAME=storycorps_archive" >> $GITHUB_ENV
+          echo "ECR_REGION=us-west-2" >> $GITHUB_ENV
+      - name: set version tag var
         run: |
-          echo "branch is $BRANCH"
-      # - name: set version tag var
-      #   run: |
-      #     echo ::set-env name=VERSION_TAG::$(echo "${BRANCH}-${COMMIT_SHA}")
+          echo "VERSION_TAG=$(echo ${BRANCH}-${GITHUB_RUN_ID})" >> $GITHUB_ENV
       # - name: determine which envrionment to deploy
       #   run: |
       #     case $BRANCH in
@@ -47,28 +46,31 @@ jobs:
       #     esac
 
 
-      # - uses: shivammathur/setup-php@v2
-      #   with:
-      #     php-version: '7.3'
-      #     tools: pecl, composer:v1
-      #     extensions: curl, soap
 
-      # - name: checkout storycorps archive repo
-      #   uses: actions/checkout@master
-      # - name: checkout utility scripts repo
-      #   uses: actions/checkout@v2
-      #   with:
-      #     repository:  storycorps/archive-utility-scripts
-      #     token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }} # `GitHub_PAT` is a secret that contains your PAT
-      #     path: archive-utility-scripts
-      # - name: configure composer to use GH access token
-      #   run: composer config -g github-oauth.github.com ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-      # - name: build the app
-      #   run: make payload
-      # - name: build container
-      #   run: make container
-      #   env:
-      #     NR_LICENSE_KEY:  ${{ secrets.NR_LICENSE_KEY }}
+      - name: checkout repo
+        uses: actions/checkout@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          load: true
+          tags: build-output
+
+      - name: save built container as artifact
+        run: |
+          mkdir -p image || exit 1
+          docker save build-output > image/output_image.tar
+
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-output
+          path: image/
 
 
       # - name: Push run_id tag to ECR
