@@ -72,6 +72,28 @@ jobs:
           name: build-output
           path: image/
 
+  goss-test:
+    name: goss-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: install goss
+        uses: e1himself/goss-installation-action
+        with:
+          version: 'v0.3.14'
+      - name: load docker image and run test
+        run: |
+          docker load -i images/build-output.tar
+          /root/bin/dgoss run build-output
+      
+  deploy-app:
+    name: deploy-app
+    runs-on: ubuntu-latest
+    steps:
+      - name: install fargate-cli
+        uses: acro5piano/github-actions-fargatecli@master
+        with:
+            args: --version
+
 
       # - name: Push run_id tag to ECR
       #   id: ecr-tag
