@@ -64,9 +64,9 @@ jobs:
       - name: install Goss requirements
         run: |
           mkdir ~/bin
-          export GOSS_DST=~/bin
-          export GOSS_FILES_STRATEGY=cp
-          export PATH=$PATH:~/bin
+          echo "GOSS_DST=~/bin" >> $GITHUB_ENV
+          echo "GOSS_FILES_STRATEGY=cp" >> $GITHUB_ENV
+          echo "PATH=$PATH:~/bin" >> $GITHUB_ENV
           curl -fsSL https://goss.rocks/install | sh
           goss -version
       - name: run goss tests
