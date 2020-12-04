@@ -67,7 +67,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: "$IMAGE_NAME:$VERSION_TAG"
+          tags: ${{ env.IMAGE_NAME }}:${{ env.VERSION_TAG }}
           context: .
           file: ./Dockerfile
 
