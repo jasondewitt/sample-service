@@ -71,7 +71,7 @@ jobs:
           goss -version
       - name: run goss tests
         run: |
-          /root/bin/dgoss run build-output
+          ~/bin/dgoss run build-output
 
       - name: install fargate-cli
         uses: acro5piano/github-actions-fargatecli@master
