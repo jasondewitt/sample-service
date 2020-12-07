@@ -26,26 +26,6 @@ jobs:
       - name: set version tag var
         run: |
           echo "VERSION_TAG=$(echo ${BRANCH}-${GITHUB_RUN_ID})" >> $GITHUB_ENV
-      # - name: determine which envrionment to deploy
-      #   run: |
-      #     case $BRANCH in
-      #       dockerfile)
-      #         echo ::set-env name=EB_ENV_NAME::archive-staging
-      #         ;;
-      #       stage)
-      #         echo ::set-env name=EB_ENV_NAME::archive-staging
-      #         ;;
-      #       trunk)
-      #         echo ::set-env name=EB_ENV_NAME::archive-production
-      #         ;;
-      #       *)
-      #         echo "could not match branch with envrionment"
-      #         echo $BRANCH
-      #         exit 1
-      #         ;;
-      #     esac
-
-
 
       - name: checkout repo
         uses: actions/checkout@master
@@ -70,75 +50,6 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}:${{ env.VERSION_TAG }}
           context: .
           file: ./Dockerfile
-
-      # - name: install Goss requirements
-      #   run: |
-      #     mkdir ~/bin
-      #     echo "GOSS_DST=~/bin" >> $GITHUB_ENV
-      #     echo "GOSS_FILES_STRATEGY=cp" >> $GITHUB_ENV
-      #     echo "PATH=$PATH:~/bin" >> $GITHUB_ENV
-      #     curl -fsSL https://goss.rocks/install | sh
-      #     goss -version
-      # - name: run goss tests
-      #   run: |
-      #     ~/bin/dgoss run build-output
-
-
-
-      - name: install fargate-cli
-        uses: acro5piano/github-actions-fargatecli@master
-        with:
-            args: --version
-
-
-      # - name: Push run_id tag to ECR
-      #   id: ecr-tag
-      #   uses: jwalton/gh-ecr-push@v1
-      #   with:
-      #     access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     region: ${ECR_REGION}
-      #     local-image: storycorps
-      #     image: $IMAGE_NAME:${VERSION_TAG}
-      # - name: Push latest tag to ECR for stage branch
-      #   id: ecr-latest-stage
-      #   uses: jwalton/gh-ecr-push@v1
-      #   if: env.BRANCH == 'stage'
-      #   with:
-      #     access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     region: ${ECR_REGION}
-      #     local-image: storycorps
-      #     image: $IMAGE_NAME:stage-latest
-      # - name: Push latest tag to ECR for trunk branch
-      #   id: ecr-latest-trunk
-      #   uses: jwalton/gh-ecr-push@v1
-      #   if: env.BRANCH == 'trunk'
-      #   with:
-      #     access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     region: ${ECR_REGION}
-      #     local-image: storycorps
-      #     image: $IMAGE_NAME:latest
-      # - name: AWS cli install action
-      #   uses: chrislennon/action-aws-cli@1.1
-      # - name: create Dockerrun.aws.json from template
-      #   run: sed "s/<tag>/$VERSION_TAG/" Dockerrun.aws.json.template > Dockerrun.aws.json
-      # - name: create ElasticBeanstalk deploy zip
-      #   run: zip -r deploy-${VERSION_TAG}.zip .ebextensions Dockerrun.aws.json
-      # - name: copy deploy zip to S3
-      #   run: aws s3 cp deploy-${VERSION_TAG}.zip s3://${DEPLOY_BUCKET}/
-      # - name: create application version
-      #   run: |
-      #     aws elasticbeanstalk create-application-version --application-name ${EB_APP_NAME} \
-      #     --version-label ${VERSION_TAG} \
-      #     --source-bundle S3Bucket="storycorps-elasticbeanstalk-deploy",S3Key="deploy-${VERSION_TAG}.zip" \
-      #     --region ${ECR_REGION}
-      # - name: deploy version to staging
-      #   run: |
-      #     aws elasticbeanstalk update-environment --application-name ${EB_APP_NAME} \
-      #     --environment-name ${EB_ENV_NAME} \
-      #     --version-label ${VERSION_TAG} --region ${ECR_REGION}
 
 
 
